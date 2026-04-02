@@ -1,6 +1,8 @@
 /** @format */
 
 import axios from "axios";
+import FA from "fasy";
+
 import { openAIWorkerUrl, polygonWorkerUrl } from "../constants/constants.js";
 import type { StockDataParam } from "../types/paramters/parameters.types.js";
 import { messages } from "../utils/messages.utils.js";
@@ -10,35 +12,39 @@ import { BadRequestExceptionError } from "../errors/bad-request.error.js";
 import { AppError } from "../errors/app.error.js";
 
 class StockPredictionService {
-  public fetchStockData = async (param: StockDataParam): Promise<any> => {
+  public generateStockReport = async (param: StockDataParam): Promise<any> => {
     const { tickersArr, dates } = param;
     const startDate = dates.startDate;
     const endDate = dates.endDate;
 
     try {
-      const stockData = await Promise.all(
-        tickersArr.map(async (ticker: string) => {
-          const response = await axios.get(
-            `${polygonWorkerUrl}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`
-          );
-
-          if (!response.status) {
-            throw new BadRequestExceptionError(
-              "Polygon Worker: Worker Error",
-              HTTP_STATUS.BAD_REQUEST,
-              ErrorCode.RESOURCE_NOT_FOUND
+      const awaitingReport = await FA.serial.pipe([
+        async () => {
+          return await FA.concurrent.map(async (ticker: string) => {
+            const response = await axios.get(
+              `${polygonWorkerUrl}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
             );
-          }
-          const data = response.data as any;
-          return data;
-        })
-      );
 
-      console.log("Stock data", stockData);
+            if (!response.status) {
+              throw new BadRequestExceptionError(
+                "Polygon Worker: Worker Error",
+                HTTP_STATUS.BAD_REQUEST,
+                ErrorCode.RESOURCE_NOT_FOUND,
+              );
+            }
+
+            return response.data as any;
+          }, tickersArr);
+        },
+        async (stockData: any) => {
+          console.log("Stock data", stockData);
+
+          return await this.fetchReport(stockData);
+        },
+      ]);
 
       try {
-        const data = await this.fetchReport(stockData);
-        return data;
+        return await awaitingReport();
       } catch (error) {
         if (error instanceof AppError) {
           throw error;
@@ -67,21 +73,17 @@ class StockPredictionService {
 
   private fetchReport = async (stockData: any): Promise<any> => {
     try {
-      const response = await axios.post(
-        openAIWorkerUrl,
-        JSON.stringify(messages(stockData)),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(openAIWorkerUrl, JSON.stringify(messages(stockData)), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       const status = response.status;
       if (status !== 200) {
         throw new BadRequestExceptionError(
           "Mistral Worker: Worker Error",
           HTTP_STATUS.BAD_REQUEST,
-          ErrorCode.RESOURCE_NOT_FOUND
+          ErrorCode.RESOURCE_NOT_FOUND,
         );
       }
       const data = response.data as any;

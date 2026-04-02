@@ -16,7 +16,7 @@ class StockPredictionController {
     this.stockPredictionService = new StockPredictionService();
   }
 
-  public fetchStockData = async (req: Request, res: Response): Promise<any> => {
+  public generateStockReport = async (req: Request, res: Response): Promise<any> => {
     try {
       const { tickersArr, dates } = req.body;
 
@@ -24,11 +24,11 @@ class StockPredictionController {
         throw new BadRequestExceptionError(
           "Validation error",
           HTTP_STATUS.BAD_REQUEST,
-          ErrorCode.VALIDATION_ERROR
+          ErrorCode.VALIDATION_ERROR,
         );
       }
 
-      const reportData = await this.stockPredictionService.fetchStockData({
+      const reportData = await this.stockPredictionService.generateStockReport({
         tickersArr,
         dates,
       });
@@ -37,10 +37,10 @@ class StockPredictionController {
         throw new BadRequestExceptionError(
           "Report data not found",
           HTTP_STATUS.NOT_FOUND,
-          ErrorCode.RESOURCE_NOT_FOUND
+          ErrorCode.RESOURCE_NOT_FOUND,
         );
       }
-      console.log("Report data", reportData.toString("\n\n\n"));
+      console.log("Report data", JSON.stringify(reportData, null, 2));
 
       return res
         .status(HTTP_STATUS.OK)
@@ -53,14 +53,10 @@ class StockPredictionController {
 
       if (error instanceof Error) {
         console.log(`${error.message}`);
-        return res
-          .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
-          .json({ message: error.message });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: error.message });
       }
 
-      return res
-        .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
-        .json({ message: error });
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: error });
     }
   };
 }

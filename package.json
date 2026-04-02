@@ -17,7 +17,7 @@
     "git-clear-case": "git rm --cached constants/Constants.js 2>/dev/null || true && git add constants/Constants.js"
   },
   "devDependencies": {
-    "@tsconfig/node18": "^18.2.6",
+    "@tsconfig/node22": "^22.0.5",
     "@types/axios": "^0.9.36",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -33,6 +33,7 @@
     "axios": "^1.13.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "fasy": "^9.0.2",
     "mongodb": "^6.21.0",
     "mongoose": "^8.19.3"
   }

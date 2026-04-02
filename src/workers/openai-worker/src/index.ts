@@ -11,6 +11,39 @@ const corsHeaders = {
 	'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+async function* mistralStreamGenerator(mistral: Mistral, messages: any[], signal: AbortSignal) {
+	let attempts = 0;
+	const maxAttempts = 3;
+
+	while (attempts < maxAttempts) {
+		try {
+			const stream = await mistral.chat.stream(
+				{
+					model: 'mistral-large-latest',
+					messages,
+				},
+				{ fetchOptions: { signal } },
+			);
+
+			console.log(`Stream: ${stream}`);
+
+			for await (const chunk of stream) {
+				const content = chunk.data.choices?.[0]?.delta?.content;
+				if (content) yield content;
+			}
+			console.log(`Mistral attempt ${attempts} success`);
+			return;
+		} catch (error: any) {
+			if (error?.name === 'AbortError') return;
+
+			attempts++;
+			console.error(`Mistral attempt ${attempts} failed:`, error);
+			if (attempts === maxAttempts) throw error;
+			await new Promise((res) => setTimeout(res, attempts * 1000));
+		}
+	}
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		if (request.method == 'OPTIONS') {
@@ -31,16 +64,23 @@ export default {
 		try {
 			const messages = (await request.json()) as any;
 			console.log('Messages', messages);
-			const response = await mistral.chat.complete({
-				model: 'mistral-large-latest',
-				messages,
+			const encoder = new TextEncoder();
+			const stream = new ReadableStream({
+				async start(controller) {
+					try {
+						for await (const token of mistralStreamGenerator(mistral, messages, request.signal)) {
+							console.log(`Token: ${token}`);
+							controller.enqueue(encoder.encode(`data: ${JSON.stringify(token)}\n\n`));
+						}
+						controller.close();
+					} catch (err) {
+						console.error(err);
+						controller.error(err);
+					}
+				},
 			});
 
-			if (!response) {
-				throw new InternalServerError('Error generating report', HTTP_STATUS.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_SERVER_ERROR);
-			}
-
-			return new Response(JSON.stringify(response.choices[0].message), {
+			return new Response(stream, {
 				headers: corsHeaders,
 				status: HTTP_STATUS.OK,
 			});

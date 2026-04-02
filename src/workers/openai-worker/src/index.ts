@@ -85,7 +85,7 @@ export default {
 			});
 
 			return new Response(stream, {
-				headers: corsHeaders,
+				headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
 				status: HTTP_STATUS.OK,
 			});
 		} catch (error) {

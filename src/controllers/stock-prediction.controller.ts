@@ -1,5 +1,7 @@
 /** @format */
 
+import { Readable, Transform } from "node:stream";
+
 import { HTTP_STATUS } from "../config/http.config.js";
 import { Request, Response } from "express";
 import {
@@ -40,15 +42,14 @@ class StockPredictionController {
       });
 
       if (!stream || typeof stream.pipe !== "function") {
-        res.write("event: error\ndata: Report stream not available\n\n");
-        return res.end();
+        return res.json({ message: "Report stream not available" });
       }
 
       stream.pipe(res);
 
       stream.on("error", (err: Error) => {
         console.error("Stream error:", err.message);
-        res.write(`event: error\ndata: ${err.message}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
         res.end();
       });
 

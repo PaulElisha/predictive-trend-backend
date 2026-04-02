@@ -28,23 +28,37 @@ class StockPredictionController {
         );
       }
 
-      const reportData = await this.stockPredictionService.generateStockReport({
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.flushHeaders();
+
+      const stream = await this.stockPredictionService.generateStockReport({
         tickersArr,
         dates,
       });
 
-      if (!reportData || typeof reportData.content !== "string") {
-        throw new BadRequestExceptionError(
-          "Report data not found",
-          HTTP_STATUS.NOT_FOUND,
-          ErrorCode.RESOURCE_NOT_FOUND,
-        );
+      if (!stream || typeof stream.pipe !== "function") {
+        res.write("event: error\ndata: Report stream not available\n\n");
+        return res.end();
       }
-      console.log("Report data", JSON.stringify(reportData.content, null, 2));
 
-      return res
-        .status(HTTP_STATUS.OK)
-        .json({ message: "Stock Report fetched successfully", content: reportData.content });
+      stream.pipe(res);
+
+      stream.on("error", (err: Error) => {
+        console.error("Stream error:", err.message);
+        res.write(`event: error\ndata: ${err.message}\n\n`);
+        res.end();
+      });
+
+      stream.on("end", () => {
+        res.end();
+      });
+
+      req.on("close", () => {
+        stream.destroy();
+      });
     } catch (error) {
       if (error instanceof AppError) {
         console.log(`${error.message}`);

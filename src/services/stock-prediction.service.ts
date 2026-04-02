@@ -73,21 +73,22 @@ class StockPredictionService {
 
   private fetchReport = async (stockData: any[]): Promise<any> => {
     try {
-      const response = await axios.post(openAIWorkerUrl, JSON.stringify(messages(stockData)), {
+      const response = await axios.post(openAIWorkerUrl, messages(stockData), {
         headers: {
           "Content-Type": "application/json",
         },
+        responseType: "stream",
       });
-      const status = response.status;
-      if (status !== 200) {
+
+      if (response.status !== 200) {
         throw new BadRequestExceptionError(
           "Mistral Worker: Worker Error",
           HTTP_STATUS.BAD_REQUEST,
           ErrorCode.RESOURCE_NOT_FOUND,
         );
       }
-      const data = response.data as any;
-      return data;
+      console.log("Response data", response.data);
+      return response.data;
     } catch (error) {
       if (error instanceof AppError) {
         console.error(`${error.message}`);

@@ -30,20 +30,20 @@ class StockPredictionController {
         );
       }
 
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Connection", "keep-alive");
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.flushHeaders();
-
       const stream = await this.stockPredictionService.generateStockReport({
         tickersArr,
         dates,
       });
 
       if (!stream || typeof stream.pipe !== "function") {
-        return res.json({ message: "Report stream not available" });
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({ message: "Report stream not available" });
       }
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.flushHeaders();
 
       stream.pipe(res);
 

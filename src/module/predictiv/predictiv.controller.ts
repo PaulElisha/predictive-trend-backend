@@ -1,12 +1,9 @@
 /** @format */
 
-import { Readable, Transform } from "node:stream";
-
 import HttpStatus from "@config/http.config.js";
 import type { Request, Response } from "express";
 import PredictivService from "@module/predictiv/predictiv.service.js";
 import ErrorCode from "@enum/error-code.js";
-import AppError from "@error/app-error.js";
 import BadRequestExceptionError from "@error/bad-request.js";
 
 class PredictivController {

@@ -6,7 +6,6 @@ import FA from "fasy";
 import HttpStatus from "@config/http.config.js";
 import ErrorCode from "@enum/error-code.js";
 import BadRequestExceptionError from "@error/bad-request.js";
-import AppError from "@error/app-error.js";
 import Envconfig from "@/env.js";
 import Messages from "@util/Messages.js";
 

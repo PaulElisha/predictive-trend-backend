@@ -20,4 +20,4 @@ class Dates {
   // }
 }
 
-export { Dates };
+export default Dates;

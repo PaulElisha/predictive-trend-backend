@@ -1,21 +1,13 @@
 /** @format */
 
-import type { EnvConfig } from "../types/config/env-config.types.js";
+import type { EnvConfig } from "../type/types.ts";
 
 import dotenv from "dotenv";
 dotenv.config();
 
 const getEnvConfig = (): EnvConfig => {
-  const getEnv = (key: string, defaultValue: string = ""): string => {
-    const value = process.env[key];
-    if (!value) {
-      if (!defaultValue) {
-        console.warn(`Warning: Missing environment variable: ${key}`);
-      }
-      return defaultValue;
-    }
-    return value;
-  };
+  const getEnv = (key: string): string => process.env[key] ?? "";
+
   return {
     PORT: getEnv("PORT"),
     HOST_NAME: getEnv("HOST_NAME"),
@@ -31,4 +23,4 @@ const getEnvConfig = (): EnvConfig => {
   };
 };
 
-export const envConfig = getEnvConfig();
+export default getEnvConfig();

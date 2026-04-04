@@ -1,9 +1,9 @@
 import { Mistral } from '@mistralai/mistralai';
+import { ContentChunk } from '@mistralai/mistralai/models/components';
 
 import { HTTP_STATUS } from '../../../config/http.config';
 
 import { AppError } from '../../../errors/app.error';
-import { ContentChunk } from '@mistralai/mistralai/models/components';
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',

@@ -1,14 +1,9 @@
 /** @format */
 
 import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../errors/app.error.js";
+import AppError from "../error/app-error.js";
 
-export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
   if (err instanceof SyntaxError) {
     return res.status(400).json({
@@ -34,3 +29,5 @@ export const errorHandler = (
     });
   }
 };
+
+export default errorHandler;

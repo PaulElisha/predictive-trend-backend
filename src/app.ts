@@ -4,20 +4,21 @@ import express from "express";
 
 import type { Express } from "express";
 import cors from "cors";
-import { Db } from "./config/db.config.js";
-import { port, hostName, corsOrigin } from "./constants/constants.js";
-import { errorHandler } from "./middlewares/errorHandler.middleware.js";
-import { limiter } from "./config/limiter.config.js";
+import Db from "@config/db.config.js";
+import Envconfig from "@/env";
+import errorHandler from "@middleware/errorHandler.js";
+import limiter from "@config/limiter.config.js";
 
-import { stockPredictionRouter } from "./routes/stock-prediction.route.js";
+import predictivRouter from "@module/predictiv/predictiv.route.js";
+import HttpStatus from "./config/http.config";
 
 class App {
   public app: Express;
-  public db: Db;
 
   constructor() {
     this.app = express();
-    this.db = new Db();
+    this.app.disable("x-powered-by");
+    this.app.set("trust proxy", 1);
     this.initializeMiddleware();
     this.initializeRoutes();
   }
@@ -27,25 +28,31 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(
       cors({
-        origin: corsOrigin || "*",
+        origin: Envconfig.CORS_ORIGIN || "*",
       }),
     );
     this.app.use(limiter);
   }
 
   async initializeDb() {
-    await this.db.connect();
+    await Db.connect();
   }
 
   initializeRoutes() {
-    this.app.use("/api", stockPredictionRouter);
+    this.app.get("/", (_req, res) => {
+      res.status(HttpStatus.OK).send("Welcome to The Predictiv Trend");
+    });
+
+    this.app.use("/api", predictivRouter);
     this.app.use(errorHandler);
   }
 
   async startServer() {
     await this.initializeDb();
-    this.app.listen(port, () => {
-      console.log(`Server is running on port ${port} at ${hostName}:${port}`);
+    this.app.listen(Envconfig.PORT, () => {
+      console.log(
+        `Server is running on port ${Envconfig.PORT} at ${Envconfig.HOST_NAME}:${Envconfig.PORT}`,
+      );
     });
   }
 }

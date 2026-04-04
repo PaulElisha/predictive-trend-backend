@@ -1,6 +1,6 @@
 /** @format */
 
-export const messages = (data: any, marketContext = "neutral") => {
+const Messages = (data: any, marketContext = "neutral") => {
   const tickers = data.map((stock: { ticker: string }) => stock.ticker);
   const dataPoints = data[0]?.results?.length || 0;
 
@@ -41,15 +41,13 @@ ${JSON.stringify(
       : "📊",
     range: stock.results
       ? `$${Math.min(...stock.results.map((r: any) => r.l)).toFixed(
-          2
+          2,
         )}-$${Math.max(...stock.results.map((r: any) => r.h)).toFixed(2)}`
       : "N/A",
-    last_close: stock.results
-      ? stock.results[stock.results.length - 1]?.c
-      : "N/A",
+    last_close: stock.results ? stock.results[stock.results.length - 1]?.c : "N/A",
   })),
   null,
-  2
+  2,
 )}
 
 # FORBIDDEN
@@ -72,9 +70,7 @@ ${tickers.length > 1 ? `**${tickers[1]}**: [Same format]` : ""}
 ${tickers.length > 2 ? `**${tickers[2]}**: [Same format]` : ""}
 ${
   tickers.length > 3
-    ? `**[Other ${
-        tickers.length - 3
-      } stocks]**: [Pattern summary - 3 sentences]`
+    ? `**[Other ${tickers.length - 3} stocks]**: [Pattern summary - 3 sentences]`
     : ""
 }
 **Portfolio Move**: [Your single best trade idea]
@@ -84,3 +80,5 @@ Be insightful, not comprehensive.`,
     },
   ];
 };
+
+export default Messages;

@@ -1,28 +1,56 @@
 {
     "extends": "@tsconfig/node22/tsconfig.json",
     "compilerOptions": {
-        "outDir": "./dist",
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./*"
+            ],
+            "@app/*": [
+                "./src/app/*"
+            ],
+            "@config/*": [
+                "./src/config/*"
+            ],
+            "@module/*": [
+                "./src/module/*"
+            ],
+            "@type/*": [
+                "./src/type/*"
+            ],
+            "@util/*": [
+                "./src/shared/util/*"
+            ],
+            "@enum/*": [
+                "./src/shared/enum/*"
+            ],
+            "@error/*": [
+                "./src/shared/error/*"
+            ],
+            "@middleware/*": [
+                "./src/shared/middleware/*"
+            ]
+        },
         "noEmit": true,
-        "allowImportingTsExtensions": true,
         "emitDecoratorMetadata": true,
+        "emitDeclarationOnly": true,
         "experimentalDecorators": true,
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "moduleResolution": "NodeNext",
-        "module": "NodeNext",
+        "moduleResolution": "node",
+        "module": "ES2022",
         "target": "ES2022",
         "strict": true,
+        "allowSyntheticDefaultImports": true,
         "allowJs": true
     },
     "include": [
         "src/**/*.ts",
-        "api/**/*.ts",
-        "@types/**/*.ts"
+        "api/**/*.ts"
     ],
     "exclude": [
         "node_modules",
-        "dist",
-        "src/workers"
+        "dist"
     ]
 }

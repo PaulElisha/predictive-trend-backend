@@ -12,10 +12,20 @@ class PredictivController {
     async (req: Request, res: Response, next: NextFunction): Promise<any> => {
       const { tickersArr, dates } = req.body;
 
-      if (!Array.isArray(tickersArr) || tickersArr.length == 0) {
+      if (!Array.isArray(tickersArr) || tickersArr.length === 0) {
         return next(
           new BadRequestExceptionError(
-            "Validation error",
+            "Validation error: tickersArr must be a non-empty array",
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_ERROR,
+          ),
+        );
+      }
+
+      if (!dates || !dates.startDate || !dates.endDate) {
+        return next(
+          new BadRequestExceptionError(
+            "Validation error: Missing dates.startDate or dates.endDate",
             HttpStatus.BAD_REQUEST,
             ErrorCode.VALIDATION_ERROR,
           ),

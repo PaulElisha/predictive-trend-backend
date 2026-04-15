@@ -29,7 +29,7 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(
       cors({
-        origin: Envconfig.CORS_ORIGIN || "*",
+        origin: Envconfig.CORS_ORIGIN,
         credentials: true,
       }),
     );

@@ -45,6 +45,7 @@ export default {
 
 			return new Response(JSON.stringify(data), { headers: corsHeaders, status: HttpStatus.OK });
 		} catch (error: any) {
+			console.error(`Error in polygon-worker for ticker ${ticker}:`, error.message);
 			const statusCode: number = typeof error?.statusCode === 'number' ? error.statusCode : 500;
 			return new Response(JSON.stringify({ error: error?.message ?? 'Internal server error' }), {
 				status: statusCode,

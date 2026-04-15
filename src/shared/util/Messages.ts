@@ -69,14 +69,9 @@ Tickers to analyze: ${tickers.join(", ")}
 
 Deliver in this exact format:
 **Market Pulse**: [60 words max]
-**${tickers[0]}**: [Psychology + Level + Prediction - 4 sentences max]
-${tickers.length > 1 ? `**${tickers[1]}**: [Same format]` : ""}
-${tickers.length > 2 ? `**${tickers[2]}**: [Same format]` : ""}
-${
-  tickers.length > 3
-    ? `**[Other ${tickers.length - 3} stocks]**: [Pattern summary - 3 sentences]`
-    : ""
-}
+${tickers
+  .map((ticker) => `**${ticker}**: [Psychology + Level + Prediction - 4 sentences max]`)
+  .join("\n")}
 **Portfolio Move**: [Your single best trade idea]
 **Risk Check**: [What could go wrong next week]
 

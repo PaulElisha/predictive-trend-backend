@@ -29,6 +29,7 @@ class App {
     this.app.use(
       cors({
         origin: Envconfig.CORS_ORIGIN || "*",
+        credentials: true,
       }),
     );
     this.app.use(limiter);

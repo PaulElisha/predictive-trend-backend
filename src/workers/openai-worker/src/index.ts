@@ -51,7 +51,11 @@ async function* mistralStreamGenerator(mistral: Mistral, messages: any[], signal
 }
 */
 
-const mistralStreamGenerator = CAF(async function* (signal: AbortSignal, mistral: Mistral, messages: any[]) {
+const mistralStreamGenerator = CAF(async function* (
+	signal: AbortSignal,
+	mistral: Mistral,
+	messages: any[],
+): AsyncGenerator<string | ContentChunk[]> {
 	const stream = await retry(
 		async (bail) => {
 			try {
@@ -119,7 +123,6 @@ export default {
 						console.error(err);
 
 						if (CAF.isCAFError(err)) {
-							console.log('Stream successfully cancelled via CAF');
 							controller.close();
 							return;
 						}
@@ -136,7 +139,6 @@ export default {
 				status: HttpStatus.OK,
 			});
 		} catch (error) {
-			console.error('Worker fetch caught an error:', error);
 			return new Response(JSON.stringify({ error: error }), {
 				headers: corsHeaders,
 				status: HttpStatus.INTERNAL_SERVER_ERROR,

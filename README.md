@@ -5,13 +5,13 @@
 A powerful full-stack application that leverages Artificial Intelligence to analyze stock market data and generate performance reports. This project uses a microservices-inspired architecture with an Express.js backend and Cloudflare Workers for efficient data fetching and AI processing.
 
 Production API:
-- Base URL: https://stock-predictions-ai.vercel.app/
+- Base URL: https://predictive-trend-api.onrender.com
 
 Public route prefix:
 - All API routes are mounted under /api
 
 Quick example:
-- Health/Root: GET https://stock-predictions-ai.vercel.app/api
+- Health/Root: GET https://predictive-trend-api.onrender.com/api
 
 ## 🚀 Features
 
@@ -221,6 +221,13 @@ sequenceDiagram
 3.  **Workers (`src/workers`)**:
     - `polygon-worker`: Proxies requests to Polygon.io, handling authentication and formatting.
     - `openai-worker`: Interfaces with Mistral/OpenAI. It transforms the AI's native stream into standard SSE format (`data: "..."`) for the backend to consume.
+
+### 🛡️ Robust Reliability & Streaming Resiliency
+The architecture includes highly durable enhancements to ensure robust network and token management:
+- **"Leak-Proof" Abort Propagation**: Utilizing native `AbortController`, any frontend connection drops (e.g., a user closing their browser tab or unmounting a component) instantly propagate down through Express and Axios all the way to the Cloudflare Worker. This natively halts AI generation models mid-stream to conserve API compute costs.
+- **Microservice Retries (`axios-retry`)**: Inter-service communication with the Polygon Worker handles exponential backoffs entirely automatically. If API fetching stutters, the system retries 3 times under a strict 5-second HTTP timeout window.
+- **Cancelable Async Flows (`caf`)**: Mistral event streaming operates over an Async Generator securely bound inside a `CAF()` wrapper. If Stream Yields fail, it implements `async-retry` internally, securely failing or safely tearing down without streaming broken payloads to the client. 
+- **Backpressure Memory Buffering**: Native Web Streams implement backpressure via checking `controller.desiredSize <= 0` prior to token enqueueing. This proactively micro-blocks Cloudflare Worker runaway loops if the Express backend or Client connection buffers become full, completely eliminating server RAM bloat/overflows.
 
 ## 🤝 Contributing
 

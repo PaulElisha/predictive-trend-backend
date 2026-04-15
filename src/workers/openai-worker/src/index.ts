@@ -68,7 +68,6 @@ const mistralStreamGenerator = CAF(async function* (
 				);
 			} catch (error: any) {
 				if (error?.name === 'AbortError') return bail(error);
-				throw error;
 			}
 		},
 		{ retries: 2, factor: 2, minTimeout: 1000, maxTimeout: 5000 },
@@ -119,7 +118,7 @@ export default {
 							}
 						}
 						controller.close();
-					} catch (err) {
+					} catch (err: any) {
 						console.error(err);
 
 						if (CAF.isCAFError(err)) {
@@ -127,8 +126,7 @@ export default {
 							return;
 						}
 
-						const errorMessage = err instanceof Error ? err.message : 'Connection lost';
-						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`));
+						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err?.message })}\n\n`));
 						controller.close();
 					}
 				},
@@ -138,10 +136,10 @@ export default {
 				headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
 				status: HttpStatus.OK,
 			});
-		} catch (error) {
-			return new Response(JSON.stringify({ error: error }), {
+		} catch (error: any) {
+			return new Response(JSON.stringify({ error: error?.message }), {
 				headers: corsHeaders,
-				status: HttpStatus.INTERNAL_SERVER_ERROR,
+				status: error?.statusCode,
 			});
 		}
 	},

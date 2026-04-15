@@ -14,8 +14,8 @@ import type { StockDataParam, Result } from "@type/types.js";
 import AppError from "@/src/shared/error/app-error";
 
 class PredictivService {
-  public generateStockReport = async (param: StockDataParam): Result<any, AppError> => {
-    const { tickersArr, dates } = param;
+  public generateStockReport = async (param: StockDataParam): Result<any, any> => {
+    const { tickersArr, dates, signal } = param;
     const startDate = dates.startDate;
     const endDate = dates.endDate;
 
@@ -25,11 +25,10 @@ class PredictivService {
       retryCondition: (error) => axiosRetry.isNetworkOrIdempotentRequestError(error),
     });
 
-    try {
-      const awaitingReport = await FA.serial.pipe([
-        async () => {
-          return await FA.concurrent.map(async (ticker: string) => {
-            /*
+    const awaitingReport = await FA.serial.pipe([
+      async () => {
+        return await FA.concurrent.map(async (ticker: string) => {
+          /*
             let attempts = 0;
             const maxAttempts = 3;
             while (attempts < maxAttempts) {
@@ -67,46 +66,43 @@ class PredictivService {
               }
             }
             */
-            const response = await axios.get(
-              `${Envconfig.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
-              { timeout: 5000 },
-            );
+          const response = await axios.get(
+            `${Envconfig.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
+            { timeout: 5000 },
+          );
 
-            if (!response || !response.status) {
-              return [
-                null,
-                new BadRequestExceptionError(
-                  "Polygon Worker: Worker Error",
-                  HttpStatus.BAD_REQUEST,
-                  ErrorCode.RESOURCE_NOT_FOUND,
-                ),
-              ];
-            }
+          if (!response || !response.status) {
+            return [
+              null,
+              new BadRequestExceptionError(
+                "Polygon Worker: Worker Error",
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.RESOURCE_NOT_FOUND,
+              ),
+            ];
+          }
 
-            return <any>response.data;
-          }, tickersArr);
-        },
-        async (stockData: any[]) => {
-          console.log("Stock data", stockData);
+          return <any>response.data;
+        }, tickersArr);
+      },
+      async (stockData: any[]) => {
+        console.log("Stock data", stockData);
 
-          const [data, error] = await this.fetchReport(stockData, param.signal);
+        const [data, error] = await this.fetchReport(stockData, signal);
 
-          if (error) return [null, error];
+        if (error) return [null, error];
 
-          return [data, null];
-        },
-      ]);
+        return [data, null];
+      },
+    ]);
 
-      const [data, error] = await awaitingReport();
+    const [data, error] = await awaitingReport();
 
-      if (error) return [null, <AppError>error];
-      return [data, null];
-    } catch (error) {
-      return [null, <AppError>error];
-    }
+    if (error) return [null, error];
+    return [data, null];
   };
 
-  private fetchReport = async (stockData: any[], signal?: AbortSignal): Result<any, AppError> => {
+  private fetchReport = async (stockData: any[], signal?: AbortSignal): Result<any, any> => {
     const fetchConfig = {
       headers: {
         "Content-Type": "application/json",
@@ -116,28 +112,24 @@ class PredictivService {
       signal: signal,
     };
 
-    try {
-      const response = await axios.post(
-        Envconfig.OPENAI_WORKER_URL,
-        Messages(stockData),
-        fetchConfig,
-      );
+    const response = await axios.post(
+      Envconfig.OPENAI_WORKER_URL,
+      Messages(stockData),
+      fetchConfig,
+    );
 
-      if (response.status !== 200) {
-        return [
-          null,
-          new BadRequestExceptionError(
-            "Mistral Worker: Worker Error",
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.RESOURCE_NOT_FOUND,
-          ),
-        ];
-      }
-      console.log("Response data", response.data);
-      return [response.data, null];
-    } catch (error) {
-      return [null, <AppError>error];
+    if (response.status !== 200) {
+      return [
+        null,
+        new BadRequestExceptionError(
+          "Mistral Worker: Worker Error",
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.RESOURCE_NOT_FOUND,
+        ),
+      ];
     }
+    console.log("Response data", response.data);
+    return [response.data, null];
   };
 }
 

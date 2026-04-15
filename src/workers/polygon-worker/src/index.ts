@@ -25,36 +25,23 @@ export default {
 		const startDate = url.searchParams.get('startDate');
 		const endDate = url.searchParams.get('endDate');
 
-		if (!ticker || !startDate || !endDate) {
-			throw new BadRequestExceptionError(
-				'Ticker, startDate, and endDate are required',
-				HttpStatus.BAD_REQUEST,
-				ErrorCode.RESOURCE_NOT_FOUND,
-			);
-		}
-
 		try {
 			const url = `${env.POLYGON_BASE_URL}/${ticker}/range/1/day/${startDate}/${endDate}?apiKey=${env.POLYGON_API_KEY}`;
 
-			const response = await fetch(url);
+			const response = await axios.get(url, { headers: corsHeaders, timeout: 10000 });
 
-			if (!response.ok) {
+			if (response.status !== HttpStatus.OK) {
 				throw new BadRequestExceptionError('Polygon API: Error fetching stock data', HttpStatus.BAD_REQUEST, ErrorCode.RESOURCE_NOT_FOUND);
 			}
 
-			const { request_id, ...data } = (await response.json()) as any;
+			const { request_id, ...data } = response.data;
 
 			return new Response(JSON.stringify(data), { headers: corsHeaders, status: HttpStatus.OK });
-		} catch (error) {
-			if (error instanceof AppError) {
-				return new Response(error.message, { status: error.statusCode, headers: corsHeaders });
-			}
-
-			if (error instanceof Error) {
-				return new Response(error.message, { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: corsHeaders });
-			}
-
-			return new Response('Internal Server Error', { status: HttpStatus.INTERNAL_SERVER_ERROR, headers: corsHeaders });
+		} catch (error: any) {
+			return new Response(JSON.stringify({ error: error?.message }), {
+				status: error?.statusCode,
+				headers: corsHeaders,
+			});
 		}
 	},
 } satisfies ExportedHandler<Env>;

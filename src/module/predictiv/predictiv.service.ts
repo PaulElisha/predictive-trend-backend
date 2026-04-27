@@ -34,7 +34,7 @@ class PredictivService {
           try {
             const response = await axios.get(
               `${Envconfig.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
-              { timeout: 10000 },
+              { timeout: 5000 },
             );
 
             if (!response || response.status >= 400) {
@@ -84,7 +84,6 @@ class PredictivService {
         "Content-Type": "application/json",
       },
       responseType: "stream" as const,
-      timeout: 2000,
       signal: signal,
     };
 

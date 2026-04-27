@@ -1,8 +1,12 @@
-import { Mistral } from '@mistralai/mistralai';
-import HttpStatus from '@config/http.config.js';
+import {Mistral}  from '@mistralai/mistralai';
 import retry from 'async-retry';
-import { EventStream } from '@mistralai/mistralai/lib/event-streams';
-import { CompletionEvent } from '@mistralai/mistralai/models/components/completionevent';
+
+import HttpStatus from '@config/http.config.js';
+
+import {EventStream}  from '@mistralai/mistralai/lib/event-streams';
+import {CompletionEvent}  from '@mistralai/mistralai/models/components/completionevent';
+
+
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',

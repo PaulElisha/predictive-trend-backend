@@ -1,6 +1,6 @@
 /** @format */
 
-import HttpStatus from "@config/http.config.js";
+import HttpStatus from "@/src/config/http.config.js";
 import type { NextFunction, Request, Response } from "express";
 import PredictivService from "@module/predictiv/predictiv.service.js";
 import ErrorCode from "@/src/shared/enum/error-code.js";

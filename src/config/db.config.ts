@@ -1,7 +1,7 @@
 /** @format */
 
 import mongoose from "mongoose";
-import Envconfig from "@config/env.config.js";
+import Envconfig from "@/src/config/env.config.js";
 
 const mongoURI = Envconfig.MONGODB_URI;
 

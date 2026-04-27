@@ -1,12 +1,8 @@
 import { Mistral } from '@mistralai/mistralai';
-import { ContentChunk } from '@mistralai/mistralai/models/components';
-
 import HttpStatus from '@config/http.config.js';
-
-import AppError from '@error/app-error.js';
-
-import CAF from 'caf';
 import retry from 'async-retry';
+import { EventStream } from '@mistralai/mistralai/lib/event-streams';
+import { CompletionEvent } from '@mistralai/mistralai/models/components/completionevent';
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
@@ -14,86 +10,66 @@ const corsHeaders = {
 	'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const mistralStreamGenerator = CAF(async function* (
-	signal: AbortSignal,
-	mistral: Mistral,
-	messages: any[],
-): AsyncGenerator<string | ContentChunk[]> {
-	const stream = await retry(
-		async (bail) => {
-			try {
-				return await mistral.chat.stream({ model: 'mistral-large-latest', messages }, { fetchOptions: { signal } });
-			} catch (error: any) {
-				if (error?.name === 'AbortError' || CAF.isCAFError(error)) return bail(error);
-				throw error;
-			}
-		},
-		{ retries: 2, factor: 2, minTimeout: 1000, maxTimeout: 10000 },
-	);
-
-	if (!stream) return;
-
-	for await (const chunk of stream) {
-		const content = chunk.data.choices?.[0]?.delta?.content;
-		if (content) yield content;
-	}
-});
-
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		if (request.method == 'OPTIONS') {
-			return new Response(null, {
-				headers: corsHeaders,
-			});
+	async fetch(request, env): Promise<Response> {
+		if (request.method === 'OPTIONS') {
+			return new Response(null, { headers: corsHeaders });
 		}
-
 		if (request.method !== 'POST') {
 			return new Response(JSON.stringify({ error: `${request.method} method not allowed.` }), {
 				status: HttpStatus.METHOD_NOT_ALLOWED,
 				headers: corsHeaders,
 			});
 		}
-
-		const mistral = new Mistral({
-			apiKey: env.MISTRAL_AI_API_KEY,
-			serverURL: env.MISTRAL_SERVER_URL,
-		});
-
 		try {
 			const body = (await request.json()) as any;
-			const messages = Array.isArray(body) ? body : body.messages;
-
-			console.log('--- NEW REQUEST ---');
-			console.log('Received messages:', JSON.stringify(messages, null, 2));
-
+			const messages = Array.isArray(body) ? body : body?.messages;
+			if (!Array.isArray(messages) || messages.length === 0) {
+				return new Response(JSON.stringify({ error: 'Invalid or missing messages array' }), {
+					status: HttpStatus.BAD_REQUEST,
+					headers: corsHeaders,
+				});
+			}
+			const mistral = new Mistral({
+				apiKey: env.MISTRAL_AI_API_KEY,
+				serverURL: env.MISTRAL_SERVER_URL,
+			});
 			const encoder = new TextEncoder();
 			const stream = new ReadableStream({
 				async start(controller) {
 					try {
-						for await (const token of mistralStreamGenerator(request.signal, mistral, messages)) {
-							console.log(`Token: ${token} - ${JSON.stringify(token, null, 2)}`);
-
-							controller.enqueue(encoder.encode(`data: ${JSON.stringify(token)}\n\n`));
-
-							while (controller.desiredSize != null && controller.desiredSize <= 0) {
-								await new Promise((resolve) => setTimeout(resolve, 10));
+						const mistralStream = await retry(
+							async (bail) => {
+								try {
+									return await mistral.chat.stream(
+										{ model: 'mistral-large-latest', messages },
+										{ fetchOptions: { signal: request.signal } },
+									);
+								} catch (error: any) {
+									if (error?.name === 'AbortError') return bail(error);
+									if (error?.status >= 400 && error?.status < 500) return bail(error);
+									throw error;
+								}
+							},
+							{ retries: 2, factor: 2, minTimeout: 500, maxTimeout: 5000 },
+						);
+						for await (const chunk of <EventStream<CompletionEvent>>mistralStream ) {
+							const content = chunk.data.choices?.[0]?.delta?.content;
+							if (content) {
+								controller.enqueue(encoder.encode(`data: ${JSON.stringify(content)}\n\n`));
 							}
 						}
 						controller.close();
 					} catch (err: any) {
-						console.error(err);
-
-						if (CAF.isCAFError(err)) {
+						if (err?.name === 'AbortError' || (request.signal as AbortSignal).aborted) {
 							controller.close();
 							return;
 						}
-
-						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err?.message })}\n\n`));
+						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' })}\n\n`));
 						controller.close();
 					}
 				},
 			});
-
 			return new Response(stream, {
 				headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
 				status: HttpStatus.OK,
@@ -101,7 +77,7 @@ export default {
 		} catch (error: any) {
 			return new Response(JSON.stringify({ error: error?.message }), {
 				headers: corsHeaders,
-				status: error?.statusCode,
+				status: error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
 			});
 		}
 	},

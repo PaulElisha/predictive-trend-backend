@@ -11,11 +11,9 @@ class PredictivRoute {
     this.routes();
   }
 
-  public routes(): void {
+  private routes(): void {
     this.router.post("/generate-stock-report", PredictivController.generateStockReport);
   }
 }
 
-const predictivRouter = new PredictivRoute().router;
-
-export default predictivRouter;
+export default new PredictivRoute();

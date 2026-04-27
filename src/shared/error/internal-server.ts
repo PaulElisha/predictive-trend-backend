@@ -1,7 +1,7 @@
 /** @format */
 
 import AppError from "@error/app-error.js";
-import HttpStatus from "@config/http.config.js";
+import HttpStatus from "@/src/config/http.config.js";
 import ErrorCode from "@enum/error-code.js";
 
 import { ErrorCodeType, HttpStatusCodeType } from "@type/types.js";

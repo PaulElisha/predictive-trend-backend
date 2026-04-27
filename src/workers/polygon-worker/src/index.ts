@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import HttpStatus from '@config/http.config.js';
+import HttpStatus from '@/src/config/http.config.js';
 
 import AppError from '@error/app-error.js';
 

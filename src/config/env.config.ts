@@ -1,6 +1,6 @@
 /** @format */
 
-import type { EnvConfig } from "../type/types.ts";
+import type { EnvConfig } from "@type/types.js";
 
 import dotenv from "dotenv";
 dotenv.config();

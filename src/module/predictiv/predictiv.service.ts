@@ -4,20 +4,21 @@ import axios from "axios";
 import axiosRetry from "axios-retry";
 import FA from "fasy";
 
-import HttpStatus from "@config/http.config.js";
+import HttpStatus from "@/src/config/http.config.js";
 import ErrorCode from "@/src/shared/enum/error-code.js";
 import BadRequestExceptionError from "@/src/shared/error/bad-request.js";
 import Envconfig from "@/env.js";
 import Messages from "@/src/shared/util/Messages.js";
 
 import type { StockDataParam, Result } from "@type/types.js";
-import AppError from "@/src/shared/error/app-error";
 
 class PredictivService {
   constructor() {
     axiosRetry(axios, {
-      retries: 3,
-      retryDelay: axiosRetry.exponentialDelay,
+      retries: 2,
+      retryDelay: (retryCount) => {
+        return retryCount * 1000
+      },
       retryCondition: (error) => axiosRetry.isNetworkOrIdempotentRequestError(error),
     });
   }
@@ -83,7 +84,7 @@ class PredictivService {
         "Content-Type": "application/json",
       },
       responseType: "stream" as const,
-      timeout: 10000,
+      timeout: 2000,
       signal: signal,
     };
 

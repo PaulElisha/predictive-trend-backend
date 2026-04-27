@@ -50,6 +50,7 @@
     },
     "include": [
         "src/**/*.ts",
+        "env.ts",
         "app.ts",
         "declarations.d.ts"
     ],

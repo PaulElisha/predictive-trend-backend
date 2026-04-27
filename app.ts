@@ -3,15 +3,16 @@ import type { Express } from "express";
 
 import express from "express";
 import morgan from "morgan";
+import helmet from "helmet";
 
 import Db from "@config/db.config.js";
 import Envconfig from "@/env.js";
 import errorHandler from "@/src/shared/middleware/errorHandler.js";
-import limiter from "@config/limiter.config.js";
-import cors from "@config/cors.config.js";
+import limiter from "@/src/config/limiter.config.js";
+import cors from "@/src/config/cors.config.js";
 
-import predictivRouter from "@module/predictiv/predictiv.route.js";
-import HttpStatus from "@config/http.config.js";
+import PredictivRoute from "@module/predictiv/predictiv.route.js";
+import HttpStatus from "@/src/config/http.config.js";
 
 class App {
   public app: Express;
@@ -29,6 +30,7 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
     this.app.use(cors);
     this.app.use(limiter);
+    this.app.use(helmet())
     this.app.use(morgan("dev"));
   }
 
@@ -41,7 +43,7 @@ class App {
       res.status(HttpStatus.OK).send("Welcome to The Predictiv Trend");
     });
 
-    this.app.use("/api", predictivRouter);
+    this.app.use("/api", PredictivRoute.router);
     this.app.use(errorHandler);
   }
 

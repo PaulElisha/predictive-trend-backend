@@ -3,8 +3,10 @@
 import HttpStatus from "@/src/config/http.config.js";
 import ErrorCode from "@/src/shared/enum/error-code.js";
 import type { Request, Response, NextFunction } from "express";
+import AppError from "../shared/error/app-error";
+import z from "zod"
 
-export type Result<T, U> = Promise<[T | null, null | U]>;
+export type Result<T, U extends  AppError> = Promise<[T | null, null | U]>;
 
 export type EnvConfig = {
   PORT: string;
@@ -20,20 +22,20 @@ export type EnvConfig = {
   CORS_ORIGIN: string;
 };
 
-export type StockDataParam = {
-  tickersArr: Array<string>;
-  dates: {
-    startDate: string;
-    endDate: string;
-  };
-  signal?: AbortSignal;
-};
+export const StockDataParam = z.object( {
+  tickersArr: z.array(z.string()),
+  dates: z.object({ 
+    startDate: z.string(),
+    endDate: z.string(),
+  }),
+  signal: z.instanceof(AbortSignal).optional(),
+})
 
 export type HttpStatusCodeType = (typeof HttpStatus)[keyof typeof HttpStatus];
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode];
 
-export type HandleAsyncControl<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = (
+export type AsyncHandler<P = any, ResBody = any, ReqBody = any, ReqQuery = any> = (
   req: Request<P, ResBody, ReqBody, ReqQuery>,
   res: Response,
   next: NextFunction,

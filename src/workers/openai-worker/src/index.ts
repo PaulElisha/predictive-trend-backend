@@ -1,12 +1,10 @@
-import {Mistral}  from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai';
 import retry from 'async-retry';
 
 import HttpStatus from '@config/http.config.js';
 
-import {EventStream}  from '@mistralai/mistralai/lib/event-streams';
-import {CompletionEvent}  from '@mistralai/mistralai/models/components/completionevent';
-
-
+import { EventStream } from '@mistralai/mistralai/lib/event-streams';
+import { CompletionEvent } from '@mistralai/mistralai/models/components/completionevent';
 
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
@@ -55,9 +53,9 @@ export default {
 									throw error;
 								}
 							},
-							{ retries: 2, factor: 2, minTimeout: 500, maxTimeout: 5000 },
+							{ retries: 1, maxTimeout: 500 },
 						);
-						for await (const chunk of <EventStream<CompletionEvent>>mistralStream ) {
+						for await (const chunk of <EventStream<CompletionEvent>>mistralStream) {
 							const content = chunk.data.choices?.[0]?.delta?.content;
 							if (content) {
 								controller.enqueue(encoder.encode(`data: ${JSON.stringify(content)}\n\n`));
@@ -69,7 +67,9 @@ export default {
 							controller.close();
 							return;
 						}
-						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' })}\n\n`));
+						controller.enqueue(
+							encoder.encode(`data: ${JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' })}\n\n`),
+						);
 						controller.close();
 					}
 				},

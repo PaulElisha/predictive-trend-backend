@@ -1,14 +1,14 @@
 /** @format */
 
 import type { NextFunction, Request, Response } from "express";
-import type { HandleAsyncControl } from "@type/types.js";
+import type { AsyncHandler } from "@type/types.js";
 
-const handleAsyncControl =
+const asyncHandler =
   <P = any, ResBody = any, ReqBody = any, ReqQuery = any>(
-    controller: HandleAsyncControl<P, ResBody, ReqBody, ReqQuery>,
+    controller: AsyncHandler<P, ResBody, ReqBody, ReqQuery>,
   ) =>
   (req: Request<P, ResBody, ReqBody, ReqQuery>, res: Response, next: NextFunction) => {
     Promise.resolve(controller(req, res, next)).catch(next);
   };
 
-export default handleAsyncControl;
+export default asyncHandler;

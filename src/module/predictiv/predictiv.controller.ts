@@ -31,7 +31,15 @@ class PredictivController {
 
    const session = await createSession(req, res);
 
-   stream.pipe(session);
+   stream.pipe(res);
+
+   stream.on("error", (err: Error) => {
+    console.error("Stream error:", err.message);
+    if (!res.headersSent) {
+     session.push(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+     res.end();
+    }
+   });
 
    session.on("disconnected", () => {
     abortController.abort();
@@ -43,14 +51,6 @@ class PredictivController {
     abortController.abort();
     stream.destroy();
     res.end();
-   });
-
-   stream.on("error", (err: Error) => {
-    console.error("Stream error:", err.message);
-    if (!res.headersSent) {
-     session.push(`data: ${JSON.stringify({ error: err.message })}\n\n`);
-     res.end();
-    }
    });
   },
  );

@@ -30,7 +30,7 @@ export default {
 		try {
 			const url = `${env.POLYGON_BASE_URL}/${ticker}/range/1/day/${startDate}/${endDate}?apiKey=${env.POLYGON_API_KEY}`;
 
-			const response = await axios.get(url, { headers: corsHeaders });
+			const response = await axios.get(url, { headers: corsHeaders, timeout: 500 });
 
 			if (response.status !== HttpStatus.OK) {
 				throw new BadRequestExceptionError('Polygon API: Error fetching stock data', HttpStatus.BAD_REQUEST, ErrorCode.RESOURCE_NOT_FOUND);

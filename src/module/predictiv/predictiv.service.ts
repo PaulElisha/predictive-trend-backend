@@ -1,18 +1,16 @@
 /** @format */
 
+import Envconfig from "@/env.js";
+import HttpStatus from "@/src/config/http.config.js";
+import ErrorCode from "@/src/shared/enum/error-code.js";
+import AppError from "@/src/shared/error/app-error";
+import BadRequestExceptionError from "@/src/shared/error/bad-request.js";
+import Messages from "@/src/shared/util/Messages.js";
+import { Result, StockDataParam } from "@type/types.js";
 import axios from "axios";
 import axiosRetry from "axios-retry";
 import FA from "fasy";
 import { z } from "zod";
-
-import HttpStatus from "@/src/config/http.config.js";
-import ErrorCode from "@/src/shared/enum/error-code.js";
-import BadRequestExceptionError from "@/src/shared/error/bad-request.js";
-import Envconfig from "@/env.js";
-import Messages from "@/src/shared/util/Messages.js";
-
-import { StockDataParam, Result } from "@type/types.js";
-import AppError from "@/src/shared/error/app-error";
 
 class PredictivService {
  constructor() {
@@ -50,7 +48,7 @@ class PredictivService {
      try {
       const response = await axios.get(
        `${Envconfig.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
-       { timeout: 5000 },
+       { timeout: 500 },
       );
 
       if (!response || response.status >= 400) {

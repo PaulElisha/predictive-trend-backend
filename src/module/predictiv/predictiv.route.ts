@@ -1,7 +1,7 @@
 /** @format */
 
-import { Router } from "express";
 import PredictivController from "@module/predictiv/predictiv.controller.js";
+import { Router } from "express";
 
 class PredictivRoute {
  public router: Router;

@@ -1,12 +1,10 @@
 /** @format */
 
 import HttpStatus from "@/src/config/http.config.js";
-import type { NextFunction, Request, Response } from "express";
-import PredictivService from "@module/predictiv/predictiv.service.js";
-import ErrorCode from "@/src/shared/enum/error-code.js";
-import BadRequestExceptionError from "@/src/shared/error/bad-request.js";
 import asyncHandler from "@/src/shared/middleware/async-handler";
+import PredictivService from "@module/predictiv/predictiv.service.js";
 import { createSession } from "better-sse";
+import type { NextFunction, Request, Response } from "express";
 
 class PredictivController {
  public generateStockReport = asyncHandler(

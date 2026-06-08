@@ -1,18 +1,15 @@
 /** @format */
-import type { Express } from "express";
-
-import express from "express";
-import morgan from "morgan";
-import helmet from "helmet";
-
-import Db from "@config/db.config.js";
 import Envconfig from "@/env.js";
-import errorHandler from "@/src/shared/middleware/error-handler.js";
-import limiter from "@/src/config/limiter.config.js";
 import cors from "@/src/config/cors.config.js";
-
-import PredictivRoute from "@module/predictiv/predictiv.route.js";
 import HttpStatus from "@/src/config/http.config.js";
+import limiter from "@/src/config/limiter.config.js";
+import errorHandler from "@/src/shared/middleware/error-handler.js";
+import Db from "@config/db.config.js";
+import PredictivRoute from "@module/predictiv/predictiv.route.js";
+import type { Express } from "express";
+import express from "express";
+import helmet from "helmet";
+import morgan from "morgan";
 
 class App {
  public app: Express;

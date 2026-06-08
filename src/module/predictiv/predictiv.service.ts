@@ -16,6 +16,10 @@ class PredictivService {
  constructor() {
   axiosRetry(axios, {
    retries: 1,
+   retryDelay(retryCount, error) {
+    return retryCount * 0;
+   },
+   shouldResetTimeout: true,
    retryCondition: (error) =>
     axiosRetry.isNetworkOrIdempotentRequestError(error),
   });

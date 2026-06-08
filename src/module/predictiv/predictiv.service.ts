@@ -1,6 +1,6 @@
 /** @format */
 
-import Envconfig from "@/env.js";
+import Env from "@/env.js";
 import HttpStatus from "@/src/config/http.config.js";
 import ErrorCode from "@/src/shared/enum/error-code.js";
 import AppError from "@/src/shared/error/app-error";
@@ -16,9 +16,6 @@ class PredictivService {
  constructor() {
   axiosRetry(axios, {
    retries: 1,
-   retryDelay: (retryCount) => {
-    return retryCount * 500;
-   },
    retryCondition: (error) =>
     axiosRetry.isNetworkOrIdempotentRequestError(error),
   });
@@ -47,7 +44,7 @@ class PredictivService {
     return await FA.concurrent.map(async (ticker: string) => {
      try {
       const response = await axios.get(
-       `${Envconfig.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
+       `${Env.POLYGON_WORKER_URL}?ticker=${ticker}&startDate=${startDate}&endDate=${endDate}`,
        { timeout: 500 },
       );
 
@@ -105,7 +102,7 @@ class PredictivService {
   };
 
   const response = await axios.post(
-   Envconfig.OPENAI_WORKER_URL,
+   Env.OPENAI_WORKER_URL,
    Messages(stockData),
    fetchConfig,
   );

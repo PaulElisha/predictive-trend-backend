@@ -1,10 +1,9 @@
 /** @format */
-import Envconfig from "@/env.js";
+import Env from "@/env.js";
 import cors from "@/src/config/cors.config.js";
 import HttpStatus from "@/src/config/http.config.js";
 import limiter from "@/src/config/limiter.config.js";
 import errorHandler from "@/src/shared/middleware/error-handler.js";
-import Db from "@config/db.config.js";
 import PredictivRoute from "@module/predictiv/predictiv.route.js";
 import type { Express } from "express";
 import express from "express";
@@ -31,10 +30,6 @@ class App {
   this.app.use(morgan("dev"));
  }
 
- async initializeDb() {
-  await Db.connect();
- }
-
  initializeRoutes() {
   this.app.get("/", (_req, res) => {
    res.status(HttpStatus.OK).send("Welcome to The Predictiv Trend");
@@ -45,10 +40,9 @@ class App {
  }
 
  async startServer() {
-  await this.initializeDb();
-  this.app.listen(Envconfig.PORT, () => {
+  this.app.listen(Env.PORT, () => {
    console.log(
-    `Server is running on port ${Envconfig.PORT} at ${Envconfig.HOST_NAME}:${Envconfig.PORT}`,
+    `Server is running on port ${Env.PORT} at ${Env.HOST_NAME}:${Env.PORT}`,
    );
   });
  }

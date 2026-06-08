@@ -13,16 +13,6 @@ class PredictivController {
   async (req: Request, res: Response, next: NextFunction): Promise<any> => {
    const { tickersArr, dates } = req.body;
 
-   if (!Array.isArray(tickersArr) || tickersArr.length === 0) {
-    return next(
-     new BadRequestExceptionError(
-      "Validation error: tickersArr must be a non-empty array",
-      HttpStatus.BAD_REQUEST,
-      ErrorCode.VALIDATION_ERROR,
-     ),
-    );
-   }
-
    const abortController = new AbortController();
 
    const [stream, error] = await PredictivService.generateStockReport({
@@ -39,11 +29,11 @@ class PredictivController {
      .json({ message: "Report stream not available" });
    }
 
-   const session = createSession(req, res);
+   const session = await createSession(req, res);
 
    stream.pipe(session);
 
-   (await session).on("disconnected", () => {
+   session.on("disconnected", () => {
     abortController.abort();
     stream.destroy();
     res.end();
@@ -58,9 +48,9 @@ class PredictivController {
    stream.on("error", (err: Error) => {
     console.error("Stream error:", err.message);
     if (!res.headersSent) {
-     res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+     session.push(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+     res.end();
     }
-    res.end();
    });
   },
  );

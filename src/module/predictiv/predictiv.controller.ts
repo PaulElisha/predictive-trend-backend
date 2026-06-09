@@ -1,7 +1,7 @@
 /** @format */
 
-import HttpStatus from "@/src/config/http.config.js";
-import asyncHandler from "@/src/shared/middleware/async-handler";
+import HttpStatus from "@config/http.config.js";
+import asyncHandler from "@middleware/async-handler";
 import PredictivService from "@module/predictiv/predictiv.service.js";
 import { createSession } from "better-sse";
 import type { NextFunction, Request, Response } from "express";

@@ -1,6 +1,7 @@
 /** @format */
 import Env from "@/env.js";
-import cors from "@/src/config/cors.config.js";
+import cors from "@config/cors.config.js";
+import axiosConfig from "@config/axios.config";
 import HttpStatus from "@/src/config/http.config.js";
 import limiter from "@/src/config/limiter.config.js";
 import errorHandler from "@/src/shared/middleware/error-handler.js";
@@ -19,6 +20,7 @@ class App {
   this.app.set("trust proxy", 1);
   this.initializeMiddleware();
   this.initializeRoutes();
+  axiosConfig();
  }
 
  initializeMiddleware() {

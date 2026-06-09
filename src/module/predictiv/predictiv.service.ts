@@ -1,30 +1,17 @@
 /** @format */
 
 import Env from "@/env.js";
-import HttpStatus from "@/src/config/http.config.js";
-import ErrorCode from "@/src/shared/enum/error-code.js";
-import AppError from "@/src/shared/error/app-error";
-import BadRequestExceptionError from "@/src/shared/error/bad-request.js";
-import Messages from "@/src/shared/util/Messages.js";
+import HttpStatus from "@config/http.config.js";
+import ErrorCode from "@enum/error-code.js";
+import AppError from "@error/app-error";
+import BadRequestExceptionError from "@error/bad-request.js";
+import Messages from "@util/Messages.js";
 import { Result, StockDataParam } from "@type/types.js";
 import axios from "axios";
-import axiosRetry from "axios-retry";
 import FA from "fasy";
 import { z } from "zod";
 
 class PredictivService {
- constructor() {
-  axiosRetry(axios, {
-   retries: 1,
-   retryDelay(retryCount, error) {
-    return retryCount * 0;
-   },
-   shouldResetTimeout: true,
-   retryCondition: (error) =>
-    axiosRetry.isNetworkOrIdempotentRequestError(error),
-  });
- }
-
  public generateStockReport = async (
   param: z.infer<typeof StockDataParam>,
  ): Result<any, AppError> => {

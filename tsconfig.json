@@ -21,6 +21,9 @@
             "@util/*": [
                 "src/shared/util/*"
             ],
+            "@shared/*": [
+                "src/shared/*"
+            ],
             "@enum/*": [
                 "src/shared/enum/*"
             ],
